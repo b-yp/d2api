@@ -48,7 +48,7 @@ func GetDiagram(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&body)
 	outputFilePath := GenerateDiagram(body.DiagramCode)
 	if outputFilePath == "Error" {
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "application/json").Set("Access-Control-Allow-Origin", "*")
 		w.WriteHeader(http.StatusBadRequest)
 		errorBody := make(map[string]string)
 		errorBody["errorMessage"] = "Compiler error"
@@ -73,7 +73,10 @@ func main() {
 		port = "8080"
 	}
 
-	router.HandleFunc("/getSvg", GetDiagram).Methods("POST")
+	router
+		.HandleFunc("/getSvg", GetDiagram)
+		.Methods("POST")
+		.Use(mux.CORSMethodMiddleware(r))
 
 	fmt.Println("Server at " + port)
 	log.Fatal(http.ListenAndServe(":"+port, router))
